@@ -15,17 +15,17 @@ Shell-скрипт для синхронизации Dropbox с Яндекс.Д�
 ## Пример использования
 
 ```bash
-# git clone https://github.com/kilylabs/drop-to-ydisk.sh.git drop-to-ydisk
-# cd drop-to-ydisk
-# chmod +x ./drop-to-ydisk.sh
-# ./drop-to-ydisk.sh install
+$ git clone https://github.com/kilylabs/drop-to-ydisk.sh.git drop-to-ydisk
+$ cd drop-to-ydisk
+$ chmod +x ./drop-to-ydisk.sh
+$ ./drop-to-ydisk.sh install
 ....
-# ./drop-to-ydisk.sh MyDropboxFolder
+$ ./drop-to-ydisk.sh MyDropboxFolder
 YDCMD: Creating dir MyDropboxFolder
 DROPBOX:  > Downloading "/MyDropboxFolder/file.xlsx" to "_tmp/file.xlsx"... DONE
 YDCMD: Uploading file file.xlsx to MyDropboxFolder/file.xlsx
 LOCAL: Removing uploaded file _tmp/file.xlsx
-#
+$
 ```
 
 ## TODO
