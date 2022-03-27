@@ -14,7 +14,7 @@ Shell-скрипт для синхронизации Dropbox с Яндекс.Д�
 
 ## Пример использования
 
-```shell
+```bash
 # git clone https://github.com/kilylabs/drop-to-ydisk.sh.git drop-to-ydisk
 # cd drop-to-ydisk
 # chmod +x ./drop-to-ydisk.sh
