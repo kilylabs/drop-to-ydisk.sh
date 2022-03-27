@@ -123,6 +123,7 @@ run () {
         if [ x`echo $line|cut -c 1` = x"!" ]; then
             nline=`echo $line|cut -c 2-10000`;
             echo -n "YDCMD: "
+            echo "Creating dir $nline"
             ./ydcmd/ydcmd.py --config=./ydcmd/ydcmd.cfg mkdir "$nline"
         else
 	        BASENAME=`basename "$line"`
@@ -133,6 +134,7 @@ run () {
                 echo "Uploading file $BASENAME to $line"
 	            ./ydcmd/ydcmd.py --config=./ydcmd/ydcmd.cfg put "./_tmp/$BASENAME" "$line"
 	            if [ $? = 0 ]; then
+                    echo "LOCAL: Removing uploaded file ./_tmp/$BASENAME"
 	                rm "./_tmp/$BASENAME"
 	            fi
 	        fi
