@@ -17,5 +17,6 @@ Shell-скрипт для синхронизации Dropbox с Яндекс.Д�
 YDCMD: Creating dir MyDropboxFolder
 DROPBOX:  > Downloading "/MyDropboxFolder/file.xlsx" to "_tmp/file.xlsx"... DONE
 YDCMD: Uploading file file.xlsx to MyDropboxFolder/file.xlsx
+LOCAL: Removing uploaded file _tmp/file.xlsx
 #
 ```
