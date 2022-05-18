@@ -83,6 +83,21 @@ EOF
 }
 
 checkinstalled () {
+    OUT=`which -s python`
+    if [ $? = 1 ]; then
+        echo "You need install python first"
+        return 2
+    fi
+    OUT=`which -s pip`
+    if [ $? = 1 ]; then
+        echo "You need install python pip"
+        return 2
+    fi
+    OUT=`pip list|grep python-dateutil`
+    if [ x"$OUT" = x ]; then
+        echo "You need install python-dateutil"
+        return 2
+    fi
     if [ ! -e ./Dropbox-Uploader ]; then
         return 1
     fi
@@ -112,9 +127,12 @@ run () {
     fi
 
     checkinstalled
+    RET=$?
 
-    if [ $? = 1 ]; then
+    if [ $RET = 1 ]; then
         echo "drop-to-ydisk is not installed. Please run $0 install";
+        exit 1;
+    elif [ $RET = 2 ]; then
         exit 1;
     fi
 
@@ -122,11 +140,11 @@ run () {
     do
         if [ x`echo $line|cut -c 1` = x"!" ]; then
             nline=`echo $line|cut -c 2-10000`;
-            echo -n "YDCMD: "
-            echo "Creating dir $nline"
-            ./ydcmd/ydcmd.py --config=./ydcmd/ydcmd.cfg mkdir "$nline"
+            echo -n "YDCMD: ";
+            echo "Creating dir $nline";
+            ./ydcmd/ydcmd.py --config=./ydcmd/ydcmd.cfg mkdir "$nline";
         else
-	        BASENAME=`basename "$line"`
+	        BASENAME=`basename "$line"`;
             echo -n "DROPBOX: "
 	        ./Dropbox-Uploader/dropbox_uploader.sh download "$line" "./_tmp/$BASENAME"
 	        if [ -e "./_tmp/$BASENAME" ]; then
