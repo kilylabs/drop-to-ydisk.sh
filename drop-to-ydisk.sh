@@ -85,12 +85,12 @@ EOF
 }
 
 checkinstalled () {
-    OUT=`which -s python`
+    OUT=`which python`
     if [ $? = 1 ]; then
         echo "You need install python first"
         return 2
     fi
-    OUT=`which -s pip`
+    OUT=`which pip`
     if [ $? = 1 ]; then
         echo "You need install python pip"
         return 2
