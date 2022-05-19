@@ -1,5 +1,7 @@
 #!/bin/sh
 
+IS_MAC=`uname -a|grep -i darwin`
+
 install () {
 
     rm -rf ./Dropbox-Uploader
@@ -111,17 +113,17 @@ checkinstalled () {
 }
 
 usage () {
-    echo "$0 <dropbox folder to sync>";
+    echo "Usage: $0 [ -f ]
+        <filename> [filename]..."
+    exit 2
 }
 
 run () {
 
-    DIR=$1
-
-    if [ x$DIR = x"" ]; then
+    if [ x"$1" = x"" ]; then
         usage
         exit 1;
-    elif [ x$DIR = xinstall ]; then
+    elif [ x"$1" = xinstall ]; then
         install
         exit 0;
     fi
@@ -136,21 +138,28 @@ run () {
         exit 1;
     fi
 
-    dropbox_list_files $DIR | while read line
+    dropbox_list_files "$@" | while read line
     do
         if [ x`echo $line|cut -c 1` = x"!" ]; then
             nline=`echo $line|cut -c 2-10000`;
-            echo -n "YDCMD: ";
+            echoplain "YDCMD: ";
             echo "Creating dir $nline";
-            ./ydcmd/ydcmd.py --config=./ydcmd/ydcmd.cfg mkdir "$nline";
+            ydisk_cmd mkdir "$nline"
         else
 	        BASENAME=`basename "$line"`;
-            echo -n "DROPBOX: "
-	        ./Dropbox-Uploader/dropbox_uploader.sh download "$line" "./_tmp/$BASENAME"
+            if [ "$FORCE" = "0" ]; then
+                STAT=`ydisk_cmd stat "$line"`
+                if [ $? -eq 0 ]; then
+                    echo "YDCMD: skipping file \"$line\" (already exists)"
+                    continue;
+                fi
+            fi
+            echoplain "DROPBOX: "
+	        dropbox_cmd download "$line" "./_tmp/$BASENAME"
 	        if [ -e "./_tmp/$BASENAME" ]; then
-                echo -n "YDCMD: "
+                echoplain "YDCMD: "
                 echo "Uploading file $BASENAME to $line"
-	            ./ydcmd/ydcmd.py --config=./ydcmd/ydcmd.cfg put "./_tmp/$BASENAME" "$line"
+	            ydisk_cmd put "./_tmp/$BASENAME" "$line"
 	            if [ $? = 0 ]; then
                     echo "LOCAL: Removing uploaded file ./_tmp/$BASENAME"
 	                rm "./_tmp/$BASENAME"
@@ -161,27 +170,67 @@ run () {
 
 }
 
+ydisk_cmd () {
+    if [ -z "$IS_MAC" ]; then
+        CMD="./ydcmd/ydcmd.py --config=./ydcmd/ydcmd.cfg"
+    else
+        CMD="./ydcmd/ydcmd.py --ca-file=/usr/local/etc/ca-certificates/cert.pem --config=./ydcmd/ydcmd.cfg";
+    fi
+    $CMD "$@"
+}
+
+dropbox_cmd() {
+    CMD="./Dropbox-Uploader/dropbox_uploader.sh"
+    $CMD "$@"
+}
+
+echoplain () {
+    CMD="/bin/echo"
+    if [ -e "$CMD" ]; then
+        CMD="$CMD -n"
+    else
+        CMD="echo"
+    fi
+    $CMD "$@"
+}
+
 dropbox_list_files () {
     local DDIR=""
     local TYPE=""
     local NDIR=""
 
-    DDIR=$1
-    echo "!$DDIR"
-
-    ./Dropbox-Uploader/dropbox_uploader.sh -q list "$DDIR" | while read line
+    while :
     do
-        TYPE=`echo $line|cut -f 1 -d ' '`
-        if [ $TYPE = "[F]" ]; then
-            echo -n $DDIR/
-            echo $line|cut -f 3-100 -d ' '|sed 's,^ *,,; s, *$,,'|grep -v -e "^[[:space:]]*$"
-        elif [ $TYPE = "[D]" ]; then
-            NDIR=`echo $line|cut -f 2-100 -d ' '|sed 's,^ *,,; s, *$,,'|grep -v -e "^[[:space:]]*$"`
-            dropbox_list_files "$DDIR/$NDIR"
+        DDIR="$1"
+        if [ -z "$DDIR" ]; then
+            break;
         fi
 
+        echo "!$DDIR"
+
+        dropbox_cmd -q list "$DDIR" | while read line
+        do
+            TYPE=`echo $line|cut -f 1 -d ' '`
+            if [ $TYPE = "[F]" ]; then
+                echoplain $DDIR/
+                echo $line|cut -f 3-100 -d ' '|sed 's,^ *,,; s, *$,,'|grep -v -e "^[[:space:]]*$"
+            elif [ $TYPE = "[D]" ]; then
+                NDIR=`echo $line|cut -f 2-100 -d ' '|sed 's,^ *,,; s, *$,,'|grep -v -e "^[[:space:]]*$"`
+                dropbox_list_files "$DDIR/$NDIR"
+            fi
+        done
+        shift;
     done
 
 }
 
-run $1
+FORCE=0
+
+while getopts f: c
+do
+    case "$c" in
+        f) FORCE=1; shift;;
+    esac
+done
+
+run "$@"
